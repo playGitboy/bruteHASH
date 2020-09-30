@@ -9,7 +9,7 @@
 golang试一试？  
 
 本人首次用golang，本着能跑就行的初心聚合"云智慧"完成——  
-**代码不精简有BUG且效率未达最佳，如需吐槽请fork后show me your code...**
+**代码不精简有BUG且效率未达最佳，如需吐槽请fork后show me your code...**  
 
 ### 示例
 ```
@@ -33,7 +33,7 @@ Usage of bruteMD5.exe:
   -v    显示爆破进度(影响爆破速度)
   ```  
 
-具体用法：  
+#### 具体用法 
 用自定义字符集穷举"code??{q????w}"明文，32位MD5结尾为"930bac91"  
 > bruteMD5 -a=code??{q????w} -bb=ABCcopqrstuvwxyz_ -e=930bac91  
 
