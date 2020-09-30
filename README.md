@@ -43,5 +43,9 @@ Usage of bruteMD5.exe:
 用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"  
 > bruteMD5 -a=flag{?????} -b=du -s=b6dff925 -i=16  
 
+![help](https://github.com/playGitboy/bruteMD5/tree/master/img/bruteMD5_help.png)  
+
+![test](https://github.com/playGitboy/bruteMD5/tree/master/img/bruteMD5_test.png)  
+
 ### 留坑
 增加参数，允许不设置"-a"参数，即允许穷举任意字符来构造指定格式md5值
