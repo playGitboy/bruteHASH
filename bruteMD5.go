@@ -110,7 +110,7 @@ func main() {
 	var printable string = digits + lowercase + uppercase + punctuation
 	var verbose bool
 	var lenMD5 int
-	var txt, dstTxt, startwith, endwith, instr, dic, diyDic, finalDic string
+	var txt, startwith, endwith, instr, dic, diyDic, finalDic string
 	var bFinalDic strings.Builder
 	var np func() string
 
@@ -124,28 +124,6 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "显示爆破进度(影响爆破速度)")
 	// 必须在所有flag都注册好而未访问其值时执行
 	flag.Parse()
-
-	i := strings.Count(txt, "?")
-	if i > 0 {
-		np = nextPassword(i, finalDic)
-	} else {
-		fmt.Printf("Your plaintext and MD5 is : %s  %s", txt, Get32MD5Encode(dstTxt))
-		os.Exit(3)
-	}
-	
-	if len(txt)*(len(startwith)+len(endwith)+len(instr))*(len(dic)+len(diyDic)) == 0 {
-		fmt.Println(`
-  未设置必要参数，查看帮助 bruteMD5 -h
-  示例：
-    用自定义字符集穷举"code??{q????w}"明文，32位MD5结尾为"930bac91"
-      > bruteMD5 -a=code??{q????w} -bb=ABCcopqrstuvwxyz_ -e=930bac91
-    用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"
-      > bruteMD5 -a=c???new??? -bb=abcdefnutuvw_ -c=3b605234ed
-    用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"
-      > bruteMD5 -a=flag{?????} -b=du -s=b6dff925 -i=16
-		`)
-		os.Exit(3)
-	}
 
 	if len(dic) > 0 {
 		for _, v := range strings.ToLower(dic) {
@@ -167,6 +145,28 @@ func main() {
 		finalDic = removeDuplicate(bFinalDic.String())
 	} else if len(diyDic) > 0 {
 		finalDic = removeDuplicate(diyDic)
+	}
+
+	i := strings.Count(txt, "?")
+	if i > 0 {
+		np = nextPassword(i, finalDic)
+	} else if len(txt) > 0 {
+		fmt.Printf("Your plaintext and MD5 is : %s  %s", txt, Get32MD5Encode(txt))
+		os.Exit(3)
+	}
+
+	if len(txt)*(len(startwith)+len(endwith)+len(instr))*(len(dic)+len(diyDic)) == 0 {
+		fmt.Println(`
+  未设置必要参数，查看帮助 bruteMD5 -h
+  示例：
+    用自定义字符集穷举"code??{q????w}"明文，32位MD5结尾为"930bac91"
+      > bruteMD5 -a=code??{q????w} -bb=ABCcopqrstuvwxyz_ -e=930bac91
+    用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"
+      > bruteMD5 -a=c???new??? -bb=abcdefnutuvw_ -c=3b605234ed
+    用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"
+      > bruteMD5 -a=flag{?????} -b=du -s=b6dff925 -i=16
+		`)
+		os.Exit(3)
 	}
 
 	fmt.Println("Brute-force range : " + finalDic)
