@@ -125,6 +125,14 @@ func main() {
 	// 必须在所有flag都注册好而未访问其值时执行
 	flag.Parse()
 
+	i := strings.Count(txt, "?")
+	if i > 0 {
+		np = nextPassword(i, finalDic)
+	} else {
+		fmt.Printf("Your plaintext and MD5 is : %s  %s", txt, Get32MD5Encode(dstTxt))
+		os.Exit(3)
+	}
+	
 	if len(txt)*(len(startwith)+len(endwith)+len(instr))*(len(dic)+len(diyDic)) == 0 {
 		fmt.Println(`
   未设置必要参数，查看帮助 bruteMD5 -h
@@ -162,15 +170,6 @@ func main() {
 	}
 
 	fmt.Println("Brute-force range : " + finalDic)
-
-	i := strings.Count(txt, "?")
-	if i > 0 {
-		np = nextPassword(i, finalDic)
-	} else {
-		fmt.Printf("Your plaintext and MD5 is : %s  %s", txt, Get32MD5Encode(dstTxt))
-		os.Exit(3)
-	}
-
 	for {
 		pwd := np()
 		if len(pwd) == 0 {
