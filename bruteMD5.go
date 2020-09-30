@@ -67,7 +67,7 @@ func Get32MD5Encode(data string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// TODO 生成16位MD5
+// 生成16位MD5
 func Get16MD5Encode(data string) string {
 	return Get32MD5Encode(data)[8:24]
 }
