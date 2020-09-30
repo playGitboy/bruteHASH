@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // 字符去重
@@ -60,28 +61,56 @@ func nextPassword(n int, c string) func() string {
 	}
 }
 
-// 生成32位MD5
 func Get32MD5Encode(data string) string {
 	h := md5.New()
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// 生成16位MD5
 func Get16MD5Encode(data string) string {
 	return Get32MD5Encode(data)[8:24]
 }
 
+func routine(txt string, pwd string, lenMD5 int, verbose bool, startwith string, endwith string, instr string, startTime int64) {
+	var md5Str string
+	var isMatch bool
+	dstTxt := genTxt(txt, pwd)
+	if lenMD5 == 32 {
+		md5Str = Get32MD5Encode(dstTxt)
+	} else {
+		md5Str = Get16MD5Encode(dstTxt)
+	}
+	if verbose {
+		fmt.Println("Trying : " + dstTxt + "  " + md5Str)
+	}
+
+	if len(startwith) > 0 {
+		isMatch = strings.HasPrefix(md5Str, startwith)
+	}
+	if len(endwith) > 0 {
+		isMatch = strings.HasSuffix(md5Str, endwith)
+	}
+	if len(instr) > 0 {
+		isMatch = strings.Contains(md5Str, instr)
+	}
+	if isMatch {
+		fmt.Printf("Bingo!! Here is what you want : %s  %s\n", dstTxt, md5Str)
+		fmt.Printf("Time escaped : %d ms", (time.Now().UnixNano()-startTime)/1000000)
+		os.Exit(3)
+	}
+}
+
 func main() {
+	startTime := time.Now().UnixNano()
 	var lowercase string = "abcdefghijklmnopqrstuvwxyz"
 	var uppercase string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	var digits string = "1234567890"
 	var hexdigits string = "1234567890abcdefABCDEF"
 	var punctuation string = "!\"#$%&()*+,-./:;<=>?@[\\]^_`{|}~ "
 	var printable string = digits + lowercase + uppercase + punctuation
-	var verbose, isMatch bool
+	var verbose bool
 	var lenMD5 int
-	var txt, dstTxt, md5Str, startwith, endwith, instr, dic, diyDic, finalDic string
+	var txt, dstTxt, startwith, endwith, instr, dic, diyDic, finalDic string
 	var bFinalDic strings.Builder
 	var np func() string
 
@@ -147,28 +176,6 @@ func main() {
 		if len(pwd) == 0 {
 			break
 		}
-		dstTxt = genTxt(txt, pwd)
-		if lenMD5 == 32 {
-			md5Str = Get32MD5Encode(dstTxt)
-		} else {
-			md5Str = Get16MD5Encode(dstTxt)
-		}
-		if verbose {
-			fmt.Println("Trying : " + dstTxt + "  " + md5Str)
-		}
-
-		if len(startwith) > 0 {
-			isMatch = strings.HasPrefix(md5Str, startwith)
-		}
-		if len(endwith) > 0 {
-			isMatch = strings.HasSuffix(md5Str, endwith)
-		}
-		if len(instr) > 0 {
-			isMatch = strings.Contains(md5Str, instr)
-		}
-		if isMatch {
-			fmt.Printf("Bingo!! Here is what you want : %s  %s", dstTxt, md5Str)
-			os.Exit(3)
-		}
+		go routine(txt, pwd, lenMD5, verbose, startwith, endwith, instr, startTime)
 	}
 }
