@@ -38,6 +38,8 @@ Usage of bruteHASH.exe:
   ```  
 
 #### 用法 
+由于众所周知的原因，示例图片无法加载显示，请移步查看img目录下的截图  
+
 随机字符穷举，HASH中包含"6377666"的SHA1  
 > bruteHASH -aa -c=6377666 -m=2  
 
@@ -49,6 +51,7 @@ Usage of bruteHASH.exe:
 
 用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"  
 > bruteHASH -a="flag{?????}" -b=du -s=b6dff925 -i=16  
+
 
 ![help](https://github.com/playGitboy/bruteMD5/tree/master/img/bruteHASH_help.png)  
 
