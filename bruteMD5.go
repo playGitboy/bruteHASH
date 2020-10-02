@@ -2,14 +2,26 @@ package main
 
 import (
 	"crypto/md5"
+	"crypto/sha1"
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/md4"
 )
+
+var startTime int64
+var szLowercase, szUppercase, szDigits, szHexdigits, szPunctuation, szPrintable string
+var txt, startwith, endwith, instr, dic, diyDic, finalDic string
+var bIsRandTxt bool
+var iLenMd5, iCryptoMode int
+var bFinalDic strings.Builder
+var np func() string
 
 // 字符去重
 func removeDuplicate(txt string) string {
@@ -42,7 +54,7 @@ func nextPassword(n int, c string) func() string {
 	p := make([]rune, n)
 	x := make([]int, len(p))
 	return func() string {
-		p := p[:len(x)]
+		//p := p[:len(x)]
 		for i, xi := range x {
 			p[i] = r[xi]
 		}
@@ -61,67 +73,119 @@ func nextPassword(n int, c string) func() string {
 	}
 }
 
-func Get32MD5Encode(data string) string {
+var asciiBytes = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+const (
+	asciiIdxBits = 6
+	asciiIdxMask = 1<<asciiIdxBits - 1
+	asciiIdxMax  = 63 / asciiIdxBits
+)
+
+// 获取长度为n的随机字符串
+func RandStringBytesMaskImpr(n int) string {
+	b := make([]byte, n)
+	for i, cache, remain := n-1, rand.Int63(), asciiIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rand.Int63(), asciiIdxMax
+		}
+		if idx := int(cache & asciiIdxMask); idx < len(asciiBytes) {
+			b[i] = asciiBytes[idx]
+			i--
+		}
+		cache >>= asciiIdxBits
+		remain--
+	}
+	return string(b)
+}
+
+// 获取字符串的MD4值
+func GetMD4(data string) string {
+	h := md4.New()
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// 获取字符串的32位MD5值
+func Get32MD5(data string) string {
 	h := md5.New()
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func Get16MD5Encode(data string) string {
-	return Get32MD5Encode(data)[8:24]
+// 获取字符串的16位MD5值
+func Get16MD5(data string) string {
+	return Get32MD5(data)[8:24]
 }
 
-func routine(txt string, pwd string, lenMD5 int, verbose bool, startwith string, endwith string, instr string, startTime int64) {
-	var md5Str string
-	var isMatch bool
-	dstTxt := genTxt(txt, pwd)
-	if lenMD5 == 32 {
-		md5Str = Get32MD5Encode(dstTxt)
+// 获取字符串的SHA1值
+func GetSha1(data string) string {
+	h := sha1.New()
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func produce(pwd string, p chan<- string) {
+	if bIsRandTxt {
+		p <- RandStringBytesMaskImpr(rand.Intn(30) + 1)
 	} else {
-		md5Str = Get16MD5Encode(dstTxt)
+		p <- genTxt(txt, pwd)
 	}
-	if verbose {
-		fmt.Println("Trying : " + dstTxt + "  " + md5Str)
+}
+
+func routine(c <-chan string) {
+	var szhash string
+	isMatch := false
+
+	dstTxt := <-c
+	if iCryptoMode == 0 {
+		szhash = GetMD4(dstTxt)
+	} else if iCryptoMode == 1 {
+		if iLenMd5 == 32 {
+			szhash = Get32MD5(dstTxt)
+		} else {
+			szhash = Get16MD5(dstTxt)
+		}
+	} else {
+		szhash = GetSha1(dstTxt)
 	}
 
 	if len(startwith) > 0 {
-		isMatch = strings.HasPrefix(md5Str, startwith)
+		isMatch = strings.HasPrefix(szhash, startwith)
 	}
 	if len(endwith) > 0 {
-		isMatch = strings.HasSuffix(md5Str, endwith)
+		isMatch = strings.HasSuffix(szhash, endwith)
 	}
 	if len(instr) > 0 {
-		isMatch = strings.Contains(md5Str, instr)
+		isMatch = strings.Contains(szhash, instr)
 	}
 	if isMatch {
-		fmt.Printf("Bingo!! Here is what you want : %s  %s\n", dstTxt, md5Str)
-		fmt.Printf("Time escaped : %d ms", (time.Now().UnixNano()-startTime)/1000000)
+		fmt.Printf("Bingo!! Here is what you want : %s  %s\n", dstTxt, szhash)
+		fmt.Printf("Time escaped : %d ms\n", (time.Now().UnixNano()-startTime)/1000000)
 		os.Exit(3)
 	}
+	return
 }
 
 func main() {
-	startTime := time.Now().UnixNano()
-	var lowercase string = "abcdefghijklmnopqrstuvwxyz"
-	var uppercase string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	var digits string = "1234567890"
-	var hexdigits string = "1234567890abcdefABCDEF"
-	var punctuation string = "!\"#$%&()*+,-./:;<=>?@[\\]^_`{|}~ "
-	var printable string = digits + lowercase + uppercase + punctuation
-	var verbose bool
-	var lenMD5 int
-	var txt, startwith, endwith, instr, dic, diyDic, finalDic string
-	var bFinalDic strings.Builder
-	var np func() string
+	var pwd, szhash string
+	startTime = time.Now().UnixNano()
+	szLowercase = "abcdefghijklmnopqrstuvwxyz"
+	szUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	szDigits = "1234567890"
+	szHexdigits = "1234567890abcdefABCDEF"
+	szPunctuation = "@$_&-!\"#%()*+,./:;<=>?[\\]^`{|}~ "
+	szPrintable = szDigits + szLowercase + szUppercase + szPunctuation
+	rand.Seed(time.Now().Unix())
 
-	flag.StringVar(&txt, "a", "", "设置明文格式，支持?占位符，如flag{?????}")
-	flag.StringVar(&dic, "b", "", "按顺序组合爆破字符集(字符集先后顺序会严重影响爆破速度，请尽量精确)\n数字d | 小写字母l | 大写字母u | 16进制字符集h | 特殊字符p | 所有可见字符r\n例如：指定爆破字符集为数字、字母 -b=dlu")
+	flag.StringVar(&txt, "a", "", "设置明文格式，支持?占位符，如flag{?????}(Linux下字符串请使用引号包裹)")
+	flag.BoolVar(&bIsRandTxt, "aa", false, "不限制明文，随机穷举指定格式HASH")
+	flag.StringVar(&dic, "b", "", "按顺序组合爆破字符集(字符集顺序会严重影响爆破速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定爆破字符集为数字、字母 -b=dlu")
 	flag.StringVar(&diyDic, "bb", "", "自定义爆破字符集")
-	flag.StringVar(&startwith, "s", "", "设置目标MD5值起始字符串")
-	flag.StringVar(&endwith, "e", "", "设置目标MD5值结束字符串")
-	flag.StringVar(&instr, "c", "", "设置目标MD5值包含字符串")
-	flag.IntVar(&lenMD5, "i", 32, "设置目标MD5位数16位或32位")
-	flag.BoolVar(&verbose, "v", false, "显示爆破进度(影响爆破速度)")
+	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1")
+	flag.StringVar(&startwith, "s", "", "设置目标HASH值起始字符串")
+	flag.StringVar(&endwith, "e", "", "设置目标HASH值结束字符串")
+	flag.StringVar(&instr, "c", "", "设置目标HASH值包含字符串")
+	flag.IntVar(&iLenMd5, "i", 32, "设置目标MD5位数16位或32位")
 	// 必须在所有flag都注册好而未访问其值时执行
 	flag.Parse()
 
@@ -129,17 +193,17 @@ func main() {
 		for _, v := range strings.ToLower(dic) {
 			switch {
 			case v == 'l':
-				bFinalDic.WriteString(lowercase)
+				bFinalDic.WriteString(szLowercase)
 			case v == 'u':
-				bFinalDic.WriteString(uppercase)
+				bFinalDic.WriteString(szUppercase)
 			case v == 'd':
-				bFinalDic.WriteString(digits)
+				bFinalDic.WriteString(szDigits)
 			case v == 'h':
-				bFinalDic.WriteString(hexdigits)
+				bFinalDic.WriteString(szHexdigits)
 			case v == 'p':
-				bFinalDic.WriteString(punctuation)
+				bFinalDic.WriteString(szPunctuation)
 			case v == 'r':
-				bFinalDic.WriteString(printable)
+				bFinalDic.WriteString(szPrintable)
 			}
 		}
 		finalDic = removeDuplicate(bFinalDic.String())
@@ -151,30 +215,64 @@ func main() {
 	if i > 0 {
 		np = nextPassword(i, finalDic)
 	} else if len(txt) > 0 {
-		fmt.Printf("Your plaintext and MD5 is : %s  %s", txt, Get32MD5Encode(txt))
+		if iCryptoMode == 0 {
+			szhash = GetMD4(txt)
+		} else if iCryptoMode == 1 {
+			if iLenMd5 == 32 {
+				szhash = Get32MD5(txt)
+			} else {
+				szhash = Get16MD5(txt)
+			}
+		} else {
+			szhash = GetSha1(txt)
+		}
+		fmt.Printf("Your plaintext and hash is : %s  %s", txt, szhash)
 		os.Exit(3)
 	}
 
 	if len(txt)*(len(startwith)+len(endwith)+len(instr))*(len(dic)+len(diyDic)) == 0 {
-		fmt.Println(`
-  未设置必要参数，查看帮助 bruteMD5 -h
+		if !((len(startwith)+len(endwith)+len(instr) != 0) && bIsRandTxt) {
+			fmt.Println(`
+  未设置必要参数，查看帮助 bruteHASH -h
   示例：
-    用自定义字符集穷举"code??{q????w}"明文，32位MD5结尾为"930bac91"
-      > bruteMD5 -a=code??{q????w} -bb=ABCcopqrstuvwxyz_ -e=930bac91
+    随机字符穷举，HASH中包含"6377666"的SHA1
+      > bruteHASH -aa -c=6377666 -m=2
+    随机字符穷举，"0e"开头的MD4
+      > bruteHASH -aa -s=0e -m=0
     用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"
-      > bruteMD5 -a=c???new??? -bb=abcdefnutuvw_ -c=3b605234ed
+      > bruteHASH -a="c???new???" -bb=abcdefnutuvw_ -c=3b605234ed
     用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"
-      > bruteMD5 -a=flag{?????} -b=du -s=b6dff925 -i=16
-		`)
-		os.Exit(3)
+      > bruteHASH -a="flag{?????}" -b=du -s=b6dff925 -i=16
+			`)
+			os.Exit(3)
+		}
 	}
 
-	fmt.Println("Brute-force range : " + finalDic)
-	for {
-		pwd := np()
-		if len(pwd) == 0 {
-			break
+	startwith = strings.ToLower(startwith)
+	endwith = strings.ToLower(endwith)
+	instr = strings.ToLower(instr)
+
+	if len(finalDic) > 0 {
+		if bIsRandTxt {
+			asciiBytes = finalDic
 		}
-		go routine(txt, pwd, lenMD5, verbose, startwith, endwith, instr, startTime)
+		fmt.Println("Brute-force range : " + finalDic)
+	} else {
+		fmt.Println("Brute-force range : " + asciiBytes)
+	}
+
+	iNum := 0
+	for {
+		if bIsRandTxt {
+			iNum = 100
+		} else {
+			pwd = np()
+			if len(pwd) == 0 {
+				break
+			}
+		}
+		ch := make(chan string, iNum)
+		go produce(pwd, ch)
+		go routine(ch)
 	}
 }
