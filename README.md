@@ -37,7 +37,7 @@ Usage of bruteHASH.exe:
         设置目标HASH值起始字符串
   ```  
 
-#### 用法 
+### 用法 
 由于众所周知的原因，示例图片无法加载显示，请移步查看img目录下的截图  
 
 ```
@@ -54,7 +54,7 @@ Usage of bruteHASH.exe:
 > bruteHASH -a="flag{?????}" -b=du -s=b6dff925 -i=16  
 ```  
 
-## 声明  
+### 声明  
 CTF偶尔需要用到"特殊"HASH，比如MISC中已知个别明文字符和部分HASH，要穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
 
 虽然"人生苦短，该用python"，但为了兼顾性能和开发效率，做了一个艰难的决定——  
