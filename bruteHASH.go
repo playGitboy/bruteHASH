@@ -179,8 +179,8 @@ func main() {
 
 	flag.StringVar(&txt, "a", "", "设置明文格式，支持?占位符，如flag{?????}(Linux下字符串请使用引号包裹)")
 	flag.BoolVar(&bIsRandTxt, "aa", false, "不限制明文，随机穷举指定格式HASH")
-	flag.StringVar(&dic, "b", "", "按顺序组合爆破字符集(字符集顺序会严重影响爆破速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定爆破字符集为数字、字母 -b=dlu")
-	flag.StringVar(&diyDic, "bb", "", "自定义爆破字符集")
+	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(字符集顺序会严重影响爆破速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定爆破字符集为数字、字母 -b=dlu")
+	flag.StringVar(&diyDic, "bb", "", "自定义穷举字符集")
 	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1")
 	flag.StringVar(&startwith, "s", "", "设置目标HASH值起始字符串")
 	flag.StringVar(&endwith, "e", "", "设置目标HASH值结束字符串")
