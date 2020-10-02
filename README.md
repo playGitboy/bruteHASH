@@ -1,8 +1,8 @@
-# bruteHASH
+# bruteHASH  
 
-## 别问，问就是为了CTF
+## 别问，问就是为了CTF  
 
-## 主要功能
+### 功能  
 随机或穷举指定格式HASH值，输出符合条件的"明文 HASH"  
 
 支持指定明文格式  
@@ -11,7 +11,7 @@
 CTF常见HASH(MD4/MD5/SHA1)  
 设置HASH开头、结尾或包含字符串  
 
-### 示例
+### 示例  
 ```
 Usage of bruteHASH.exe:
   -a string
@@ -37,7 +37,7 @@ Usage of bruteHASH.exe:
         设置目标HASH值起始字符串
   ```  
 
-#### 具体用法 
+#### 用法 
 随机字符穷举，HASH中包含"6377666"的SHA1  
 > bruteHASH -aa -c=6377666 -m=2  
 
