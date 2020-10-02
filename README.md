@@ -11,7 +11,7 @@
 CTF常见HASH(MD4/MD5/SHA1)  
 设置HASH开头、结尾或包含字符串  
 
-### 示例  
+### 帮助    
 ```
 Usage of bruteHASH.exe:
   -a string
@@ -37,7 +37,7 @@ Usage of bruteHASH.exe:
         设置目标HASH值起始字符串
   ```  
 
-### 用法 
+### 示例   
 由于众所周知的原因，示例图片无法加载显示，请移步查看img目录下的截图  
 
 ```
