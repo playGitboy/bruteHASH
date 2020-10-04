@@ -8,20 +8,20 @@
 支持指定明文格式  
 不限定明文格式随机字符穷举  
 自定义穷举字符集  
-CTF常见HASH(MD4/MD5/SHA1)  
+CTF常见HASH(MD4/MD5/SHA1/SHA224/SHA256/SHA384/SHA512)  
 设置HASH开头、结尾或包含字符串  
 
 ### 帮助    
 ```
-Usage of bruteHASH.exe:
+Usage of ./bruteHASH:
   -a string
         设置明文格式，支持?占位符，如flag{?????}(Linux下字符串请使用引号包裹)
   -aa
         不限制明文，随机穷举指定格式HASH
   -b string
-        按顺序组合穷举字符集(字符集顺序会严重影响爆破速度，请尽量精确)
+        按顺序组合穷举字符集(字符集顺序会严重影响穷举速度，请尽量精确)
         d 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符
-        例如：指定爆破字符集为数字、字母 -b=dlu
+        例如：指定穷举字符集为数字、字母 -b=dlu
   -bb string
         自定义穷举字符集
   -c string
@@ -32,9 +32,11 @@ Usage of bruteHASH.exe:
         设置目标MD5位数16位或32位 (default 32)
   -m int
         设置HASH算法
-        0 MD4 | 1 MD5 | 2 SHA1 (default 1)
+        0 MD4 | 1 MD5 | 2 SHA1 | 3 SHA224 | 4 SHA256 | 5 SHA384 | 6 SHA512 (default 1)
   -s string
         设置目标HASH值起始字符串
+  -t int
+        使用-aa选项随机穷举HASH时，设置最少输出条数 (default 3)
   ```  
 
 ### 示例   
@@ -46,6 +48,9 @@ Usage of bruteHASH.exe:
 
 随机字符穷举，"0e"开头的MD4  
 > bruteHASH -aa -s=0e -m=0  
+
+直接输出"HelloWorld"的SHA256值  
+> bruteHASH -a=HelloWorld -m=4  
 
 用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"  
 > bruteHASH -a="c???new???" -bb=abcdefnutuvw_ -c=3b605234ed  
