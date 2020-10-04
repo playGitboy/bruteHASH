@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/md5"
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -19,7 +21,7 @@ var startTime int64
 var szLowercase, szUppercase, szDigits, szHexdigits, szPunctuation, szPrintable string
 var txt, startwith, endwith, instr, dic, diyDic, finalDic string
 var bIsRandTxt bool
-var iLenMd5, iCryptoMode int
+var iLenMd5, iCryptoMode, iTotal, iShown int
 var bFinalDic strings.Builder
 var np func() string
 
@@ -107,9 +109,8 @@ func GetMD4(data string) string {
 
 // 获取字符串的32位MD5值
 func Get32MD5(data string) string {
-	h := md5.New()
-	h.Write([]byte(data))
-	return hex.EncodeToString(h.Sum(nil))
+	sum := md5.Sum([]byte(data))
+	return hex.EncodeToString(sum[:])
 }
 
 // 获取字符串的16位MD5值
@@ -119,9 +120,32 @@ func Get16MD5(data string) string {
 
 // 获取字符串的SHA1值
 func GetSha1(data string) string {
-	h := sha1.New()
-	h.Write([]byte(data))
-	return hex.EncodeToString(h.Sum(nil))
+	sum := sha1.Sum([]byte(data))
+	return hex.EncodeToString(sum[:])
+}
+
+// 获取字符串的SHA224值
+func GetSha224(data string) string {
+	sum := sha256.Sum224([]byte(data))
+	return hex.EncodeToString(sum[:])
+}
+
+// 获取字符串的SHA256值
+func GetSha256(data string) string {
+	sum := sha256.Sum256([]byte(data))
+	return hex.EncodeToString(sum[:])
+}
+
+// 获取字符串的SHA384值
+func GetSha384(data string) string {
+	sum := sha512.Sum384([]byte(data))
+	return hex.EncodeToString(sum[:])
+}
+
+// 获取字符串的SHA512值
+func GetSha512(data string) string {
+	sum := sha512.Sum512([]byte(data))
+	return hex.EncodeToString(sum[:])
 }
 
 func produce(pwd string, p chan<- string) {
@@ -160,14 +184,23 @@ func routine(c <-chan string) {
 	}
 	if isMatch {
 		fmt.Printf("Bingo!! Here is what you want : %s  %s\n", dstTxt, szhash)
-		fmt.Printf("Time escaped : %d ms\n", (time.Now().UnixNano()-startTime)/1000000)
-		os.Exit(3)
+		if bIsRandTxt {
+			if iShown < iTotal {
+				iShown++
+			} else {
+				os.Exit(3)
+			}
+		} else {
+			fmt.Printf("Time escaped : %d ms\n", (time.Now().UnixNano()-startTime)/1000000)
+			os.Exit(3)
+		}
 	}
 	return
 }
 
 func main() {
 	var pwd, szhash string
+	iShown = 1
 	startTime = time.Now().UnixNano()
 	szLowercase = "abcdefghijklmnopqrstuvwxyz"
 	szUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -179,13 +212,14 @@ func main() {
 
 	flag.StringVar(&txt, "a", "", "设置明文格式，支持?占位符，如flag{?????}(Linux下字符串请使用引号包裹)")
 	flag.BoolVar(&bIsRandTxt, "aa", false, "不限制明文，随机穷举指定格式HASH")
-	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(字符集顺序会严重影响爆破速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定爆破字符集为数字、字母 -b=dlu")
+	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(字符集顺序会严重影响穷举速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定穷举字符集为数字、字母 -b=dlu")
 	flag.StringVar(&diyDic, "bb", "", "自定义穷举字符集")
-	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1")
+	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1 | 3 SHA224 | 4 SHA256 | 5 SHA384 | 6 SHA512")
 	flag.StringVar(&startwith, "s", "", "设置目标HASH值起始字符串")
 	flag.StringVar(&endwith, "e", "", "设置目标HASH值结束字符串")
 	flag.StringVar(&instr, "c", "", "设置目标HASH值包含字符串")
 	flag.IntVar(&iLenMd5, "i", 32, "设置目标MD5位数16位或32位")
+	flag.IntVar(&iTotal, "t", 3, "使用-aa选项随机穷举HASH时，设置最少输出条数")
 	// 必须在所有flag都注册好而未访问其值时执行
 	flag.Parse()
 
@@ -223,8 +257,16 @@ func main() {
 			} else {
 				szhash = Get16MD5(txt)
 			}
-		} else {
+		} else if iCryptoMode == 2 {
 			szhash = GetSha1(txt)
+		} else if iCryptoMode == 3 {
+			szhash = GetSha224(txt)
+		} else if iCryptoMode == 4 {
+			szhash = GetSha256(txt)
+		} else if iCryptoMode == 5 {
+			szhash = GetSha384(txt)
+		} else {
+			szhash = GetSha512(txt)
 		}
 		fmt.Printf("Your plaintext and hash is : %s  %s", txt, szhash)
 		os.Exit(3)
@@ -261,17 +303,17 @@ func main() {
 		fmt.Println("Brute-force range : " + asciiBytes)
 	}
 
-	iNum := 0
+	iChanNum := 0
 	for {
 		if bIsRandTxt {
-			iNum = 100
+			iChanNum = 100
 		} else {
 			pwd = np()
 			if len(pwd) == 0 {
 				break
 			}
 		}
-		ch := make(chan string, iNum)
+		ch := make(chan string, iChanNum)
 		go produce(pwd, ch)
 		go routine(ch)
 	}
