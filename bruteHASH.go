@@ -211,6 +211,7 @@ func routine(c <-chan string) {
 
 func main() {
 	var pwd, hashMask string
+	var bShowVersion bool
 	iShown = 1
 	startTime = time.Now().UnixNano()
 	szLowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -229,8 +230,14 @@ func main() {
 	flag.StringVar(&hashMask, "s", "", "设置HASH值字符串格式，支持?占位符，如HASH第三位开始是6377，直接写??6377即可")
 	flag.IntVar(&iLenMd5, "i", 32, "设置目标MD5位数16位或32位")
 	flag.IntVar(&iTotal, "t", 3, "使用-aa选项随机穷举HASH时，设置最少输出条数")
+	flag.BoolVar(&bShowVersion, "v", false, "显示当前版本号")
 	// 必须在所有flag都注册好而未访问其值时执行
 	flag.Parse()
+
+	if bShowVersion {
+		fmt.Println("Version : 1.3")
+		os.Exit(3)
+	}
 
 	if len(dic) > 0 {
 		for _, v := range strings.ToLower(dic) {
@@ -274,7 +281,7 @@ func main() {
 			fmt.Println(`
   未设置必要参数，查看帮助 bruteHASH -h
   示例：
-    直接输出"HelloWorld"字符串的八种HASH值
+    直接输出"HelloWorld"字符串的多种HASH值
       > bruteHASH -a=HelloWorld
     随机字符穷举，输出至少6条开头是"6377"的SHA1
       > bruteHASH -aa -s=6377 -m=2 -t=6
