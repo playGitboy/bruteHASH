@@ -18,8 +18,9 @@ import (
 )
 
 var startTime int64
+var mHashMask map[int]string
 var szLowercase, szUppercase, szDigits, szHexdigits, szPunctuation, szPrintable string
-var txt, startwith, endwith, instr, dic, diyDic, finalDic string
+var txt, dic, diyDic, finalDic string
 var bIsRandTxt bool
 var iLenMd5, iCryptoMode, iTotal, iShown int
 var bFinalDic strings.Builder
@@ -48,6 +49,18 @@ func genTxt(txt string, dic string) string {
 		dic = dic[tmpLen:]
 	}
 	return txt
+}
+
+// 将输入的"??6377????666"解析为{2:"6377";10:"666"}格式字典方便匹配调用
+func parseHashMask(word string) map[int]string {
+	hashMask := make(map[int]string)
+	reg := regexp.MustCompile(`[^?]+`)
+	allStr := reg.FindAllString(word, -1)
+	allStrIndex := reg.FindAllStringIndex(word, -1)
+	for i, v := range allStrIndex {
+		hashMask[v[0]] = allStr[i]
+	}
+	return hashMask
 }
 
 // 笛卡尔乘积，同python中itertools.product
@@ -173,17 +186,15 @@ func routine(c <-chan string) {
 		szhash = GetSha1(dstTxt)
 	}
 
-	if len(startwith) > 0 {
-		isMatch = strings.HasPrefix(szhash, startwith)
+	for k, v := range mHashMask {
+		isMatch = strings.HasPrefix(szhash[k:], v)
+		if !isMatch {
+			break
+		}
 	}
-	if len(endwith) > 0 {
-		isMatch = strings.HasSuffix(szhash, endwith)
-	}
-	if len(instr) > 0 {
-		isMatch = strings.Contains(szhash, instr)
-	}
+
 	if isMatch {
-		fmt.Printf("Bingo!! Here is what you want : %s  %s\n", dstTxt, szhash)
+		fmt.Printf("Bingo!! It's your goal : %s  %s\n", dstTxt, szhash)
 		if bIsRandTxt {
 			if iShown < iTotal {
 				iShown++
@@ -199,7 +210,7 @@ func routine(c <-chan string) {
 }
 
 func main() {
-	var pwd, szhash string
+	var pwd, hashMask string
 	iShown = 1
 	startTime = time.Now().UnixNano()
 	szLowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -212,12 +223,10 @@ func main() {
 
 	flag.StringVar(&txt, "a", "", "设置明文格式，支持?占位符，如flag{?????}(Linux下字符串请使用引号包裹)")
 	flag.BoolVar(&bIsRandTxt, "aa", false, "不限制明文，随机穷举指定格式HASH")
-	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(字符集顺序会严重影响穷举速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：指定穷举字符集为数字、字母 -b=dlu")
+	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(顺序会严重影响穷举速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：穷举字符集为数字、字母 -b=dlu")
 	flag.StringVar(&diyDic, "bb", "", "自定义穷举字符集")
 	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1 | 3 SHA224 | 4 SHA256 | 5 SHA384 | 6 SHA512")
-	flag.StringVar(&startwith, "s", "", "设置目标HASH值起始字符串")
-	flag.StringVar(&endwith, "e", "", "设置目标HASH值结束字符串")
-	flag.StringVar(&instr, "c", "", "设置目标HASH值包含字符串")
+	flag.StringVar(&hashMask, "s", "", "设置HASH值字符串格式，支持?占位符，如HASH第三位开始是6377，直接写??6377即可")
 	flag.IntVar(&iLenMd5, "i", 32, "设置目标MD5位数16位或32位")
 	flag.IntVar(&iTotal, "t", 3, "使用-aa选项随机穷举HASH时，设置最少输出条数")
 	// 必须在所有flag都注册好而未访问其值时执行
@@ -249,50 +258,36 @@ func main() {
 	if i > 0 {
 		np = nextPassword(i, finalDic)
 	} else if len(txt) > 0 {
-		if iCryptoMode == 0 {
-			szhash = GetMD4(txt)
-		} else if iCryptoMode == 1 {
-			if iLenMd5 == 32 {
-				szhash = Get32MD5(txt)
-			} else {
-				szhash = Get16MD5(txt)
-			}
-		} else if iCryptoMode == 2 {
-			szhash = GetSha1(txt)
-		} else if iCryptoMode == 3 {
-			szhash = GetSha224(txt)
-		} else if iCryptoMode == 4 {
-			szhash = GetSha256(txt)
-		} else if iCryptoMode == 5 {
-			szhash = GetSha384(txt)
-		} else {
-			szhash = GetSha512(txt)
-		}
-		fmt.Printf("Your plaintext and hash is : %s  %s", txt, szhash)
+		fmt.Printf("MD4     : %s\n", GetMD4(txt))
+		fmt.Printf("MD5(16) : %s\n", Get16MD5(txt))
+		fmt.Printf("MD5(32) : %s\n", Get32MD5(txt))
+		fmt.Printf("SHA1    : %s\n", GetSha1(txt))
+		fmt.Printf("SHA224  : %s\n", GetSha224(txt))
+		fmt.Printf("SHA256  : %s\n", GetSha256(txt))
+		fmt.Printf("SHA384  : %s\n", GetSha384(txt))
+		fmt.Printf("SHA512  : %s\n", GetSha512(txt))
 		os.Exit(3)
 	}
 
-	if len(txt)*(len(startwith)+len(endwith)+len(instr))*(len(dic)+len(diyDic)) == 0 {
-		if !((len(startwith)+len(endwith)+len(instr) != 0) && bIsRandTxt) {
+	if len(txt)*len(hashMask)*(len(dic)+len(diyDic)) == 0 {
+		if !(len(hashMask) != 0 && bIsRandTxt) {
 			fmt.Println(`
   未设置必要参数，查看帮助 bruteHASH -h
   示例：
-    随机字符穷举，HASH中包含"6377666"的SHA1
-      > bruteHASH -aa -c=6377666 -m=2
-    随机字符穷举，"0e"开头的MD4
-      > bruteHASH -aa -s=0e -m=0
-    用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"
-      > bruteHASH -a="c???new???" -bb=abcdefnutuvw_ -c=3b605234ed
-    用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"
-      > bruteHASH -a="flag{?????}" -b=du -s=b6dff925 -i=16
+    直接输出"HelloWorld"字符串的八种HASH值
+      > bruteHASH -a=HelloWorld
+    随机字符穷举，输出至少6条开头是"6377"的SHA1
+      > bruteHASH -aa -s=6377 -m=2 -t=6
+    随机字符穷举，第7位开始是"6377"的SHA256
+      > bruteHASH -aa -s="??????6377" -m=4
+    自定义字符集穷举"c???new???"明文，以"95ce2a"结尾的16位MD5
+      > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="??????????95ce2a" -i=16
 			`)
 			os.Exit(3)
 		}
 	}
 
-	startwith = strings.ToLower(startwith)
-	endwith = strings.ToLower(endwith)
-	instr = strings.ToLower(instr)
+	mHashMask = parseHashMask(strings.ToLower(hashMask))
 
 	if len(finalDic) > 0 {
 		if bIsRandTxt {
