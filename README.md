@@ -5,11 +5,9 @@
 ### 功能  
 随机或穷举指定格式HASH值，输出符合条件的"明文 HASH"  
 
-支持指定明文格式  
-不限定明文格式随机字符穷举  
-自定义穷举字符集  
-CTF常见HASH(MD4/MD5/SHA1/SHA224/SHA256/SHA384/SHA512)  
-设置HASH开头、结尾或包含字符串  
+明文/HASH都支持使用占位符"?"  
+支持随机字符/自定义字符集穷举  
+支持常见HASH类型(MD4/MD5/SHA1/SHA224/SHA256/SHA384/SHA512)  
 
 ### 帮助    
 ```
@@ -19,22 +17,18 @@ Usage of ./bruteHASH:
   -aa
         不限制明文，随机穷举指定格式HASH
   -b string
-        按顺序组合穷举字符集(字符集顺序会严重影响穷举速度，请尽量精确)
+        按顺序组合穷举字符集(顺序会严重影响穷举速度，请尽量精确)
         d 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符
-        例如：指定穷举字符集为数字、字母 -b=dlu
+        例如：穷举字符集为数字、字母 -b=dlu
   -bb string
         自定义穷举字符集
-  -c string
-        设置目标HASH值包含字符串
-  -e string
-        设置目标HASH值结束字符串
   -i int
         设置目标MD5位数16位或32位 (default 32)
   -m int
         设置HASH算法
         0 MD4 | 1 MD5 | 2 SHA1 | 3 SHA224 | 4 SHA256 | 5 SHA384 | 6 SHA512 (default 1)
   -s string
-        设置目标HASH值起始字符串
+        设置HASH值字符串格式，支持?占位符，如HASH第三位开始是6377，直接写??6377即可
   -t int
         使用-aa选项随机穷举HASH时，设置最少输出条数 (default 3)
   ```  
@@ -43,27 +37,19 @@ Usage of ./bruteHASH:
 由于众所周知的原因，示例图片无法加载显示，请移步查看img目录下的截图  
 
 ```
-随机字符穷举，HASH中包含"6377666"的SHA1  
-> bruteHASH -aa -c=6377666 -m=2  
-
-随机字符穷举，"0e"开头的MD4  
-> bruteHASH -aa -s=0e -m=0  
-
-直接输出"HelloWorld"的SHA256值  
-> bruteHASH -a=HelloWorld -m=4  
-
-用自定义字符集穷举"c???new???"明文，32位MD5包含字符串"3b605234ed"  
-> bruteHASH -a="c???new???" -bb=abcdefnutuvw_ -c=3b605234ed  
-
-用数字、大写字母穷举明文"flag{?????}"(?代表未知5位)，16位MD5开头为"b6dff925"  
-> bruteHASH -a="flag{?????}" -b=du -s=b6dff925 -i=16  
+直接输出"HelloWorld"字符串的多种HASH值
+  > bruteHASH -a=HelloWorld
+随机字符穷举，输出至少6条开头是"6377"的SHA1
+  > bruteHASH -aa -s=6377 -m=2 -t=6
+随机字符穷举，第7位开始是"6377"的SHA256
+  > bruteHASH -aa -s="??????6377" -m=4
+自定义字符集穷举"c???new???"明文，以"95ce2a"结尾的16位MD5
+  > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="??????????95ce2a" -i=16
 ```  
 
 ### 声明  
-CTF偶尔需要用到"特殊"HASH，比如MISC中已知个别明文字符和部分HASH，要穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
+CTF偶尔要用"特殊"HASH，如MISC已知个别明文字符和部分HASH，穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
 
-虽然"人生苦短，该用python"，但为了兼顾性能和开发效率，做了一个艰难的决定——  
-学用golang试一试？  
+**“先从无到有，再从有到精”**  
 
-首次用golang，本着能跑就行的初心聚合"云智慧"完成——  
-**代码不精简有BUG且效率未达最佳，如需吐槽请fork后show me your code...**  
+**代码不精简可能有BUG且效率未达最佳，如欲吐槽请fork后show your code...**  
