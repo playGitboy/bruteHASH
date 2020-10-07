@@ -34,11 +34,11 @@ Usage of ./bruteHASH:
   -t int
         使用-aa选项随机穷举HASH时，设置最少输出条数 (default 3)
   -v    显示当前版本号
-  ```  
+```  
 
-### 示例   
-由于众所周知的原因，示例图片无法加载显示，请移步查看img目录下的截图  
+![bruteHASH帮助](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_help.jpg)  
 
+### 示例  
 ```
 直接输出"HelloWorld"字符串的多种HASH值
   > bruteHASH -a=HelloWorld
@@ -55,7 +55,7 @@ Usage of ./bruteHASH:
   > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="11:95ce2a" -i=16
 ```  
 
-![bruteHASH测试](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_test.png)  
+![bruteHASH测试](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_test.jpg)  
 
 ### 声明  
 CTF偶尔要用"特殊"HASH，如MISC已知个别明文字符和部分HASH，穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
