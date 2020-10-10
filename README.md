@@ -69,8 +69,8 @@ Usage of bruteHASH v1.3.2:
 * 明文和sha1都以0e开头  
 0ecJFe  0e6NM  0eYAu0dPt  
 * md5包含"276f7227"  
-> 用于web构造mysql注入md5($password,true)  
 ffifdyop  d0Fqvwtr2PitRUJyqT  hwqc5H27HdV6WhcBbKDVX  
+> 用于web构造mysql注入md5($password,true)  
 
 ### 声明  
 CTF偶尔要用"特殊"HASH，如MISC已知个别明文字符和部分HASH，穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
