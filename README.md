@@ -63,11 +63,14 @@ Usage of bruteHASH v1.3.2:
 ### Fuzz特殊HASH  
 有关CTF中特殊HASH，下面几个字符串收藏有好处(￣▽￣)"  
 * 明文和md5都以0e开头   
-0e215962017 0eBkcqQpv 0eKfoob 0edpGW 0embO4G 0eqb  
-* 明文和md4都以0e开头 
-0e30 0e189 0e311 0e77961763272 0e001233333333333334557778889  
+0e215962017  0eBkcqQpv  0eKfoob  0edpGW  0embO4G  0eqb  
+* 明文和md4都以0e开头  
+0e30  0e189  0e311  0e77961763272  0e001233333333333334557778889  
 * 明文和sha1都以0e开头  
-0ecJFe 0e6NM 0eYAu0dPt 
+0ecJFe  0e6NM  0eYAu0dPt  
+* md5包含"276f7227"  
+> 用于web构造mysql注入md5($password,true)  
+ffifdyop  d0Fqvwtr2PitRUJyqT  hwqc5H27HdV6WhcBbKDVX  
 
 ### 声明  
 CTF偶尔要用"特殊"HASH，如MISC已知个别明文字符和部分HASH，穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
