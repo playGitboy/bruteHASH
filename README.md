@@ -3,11 +3,9 @@
 ## 别问，问就是为了CTF  
 
 ### 功能  
-随机或穷举指定格式HASH值，输出符合条件的"明文 HASH"  
+随机或穷举指定格式HASH值，输出符合条件的"明文 HASH"  组合
 
-明文/HASH都支持使用占位符"?"  
-支持随机字符/自定义字符集穷举  
-支持常见HASH类型(MD4/MD5/SHA1/SHA224/SHA256/SHA384/SHA512)  
+支持Fuzz常见HASH类型(MD4/MD5/SHA1/SHA224/SHA256/SHA384/SHA512)  
 
 ### 帮助  
 ```
@@ -35,9 +33,9 @@ Usage of bruteHASH v1.3.2:
   -t int
         使用-aa选项随机穷举HASH时，设置最少输出条数 (default 3)
   -v    显示当前版本号
-```  
+```
 
-![bruteHASH帮助](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_help.jpg)  
+![bruteHASH帮助](https://github.com/playGitboy/bruteHASH/blob/master/img/v1.3.2/bruteHASH_help_v1.3.2.jpg)  
 
 ### 示例  
 ```
@@ -56,9 +54,9 @@ Usage of bruteHASH v1.3.2:
 自定义字符集穷举"c???new???"明文，以"95ce2a"结尾的16位MD5
   > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="??????????95ce2a" -i=16
   > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="11:95ce2a" -i=16
-```  
+```
 
-![bruteHASH测试](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_test.jpg)  
+![bruteHASH测试](https://github.com/playGitboy/bruteHASH/blob/master/img/v1.3.2/bruteHASH_test_v1.3.2.jpg)  
 
 ### Fuzz特殊HASH  
 使用该工具Fuzz出一些CTF常见特殊HASH，有备无患(￣▽￣)"  
@@ -83,11 +81,13 @@ Usage of bruteHASH v1.3.2:
 ffifdyop  
 d0Fqvwtr2PitRUJyqT  
 hwqc5H27HdV6WhcBbKDVX  
-> 用于web构造mysql注入md5($password,true)  
+> 用于web构造mysql注入恒真语句 md5($password,true)    
+
+
 
 ### 声明  
 CTF偶尔要用"特殊"HASH，如MISC已知个别明文字符和部分HASH，穷举flag明文；WEB中构造MYSQL注入，要用指定字符集构造一个以"xxxxxxxx"开头的MD5等等。但找了半天，满天飞的都是"爆破"HASH的工具，一个好用的穷举生成HASH的工具都没有  
 
 **“先从无到有，再从有到精”**  
 
-**代码不精简可能有BUG且效率未达最佳，如欲吐槽请fork后show your code...**  
+**代码不精简可能有BUG且效率未达最佳，欢迎提Issue或Fork...**  
