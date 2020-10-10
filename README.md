@@ -61,7 +61,7 @@ Usage of bruteHASH v1.3.2:
 ![bruteHASH测试](https://github.com/playGitboy/bruteHASH/blob/master/img/bruteHASH_test.jpg)  
 
 ### Fuzz特殊HASH  
-有关CTF中特殊HASH，下面几个字符串收藏有好处(￣▽￣)"  
+使用该工具Fuzz出一些CTF常见特殊HASH，有备无患(￣▽￣)"  
 * 明文和md5都以0e开头   
 0e215962017  0eBkcqQpv  0eKfoob  0edpGW  0embO4G  0eqb  
 * 明文和md4都以0e开头  
