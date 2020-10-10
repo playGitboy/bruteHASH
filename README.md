@@ -63,13 +63,26 @@ Usage of bruteHASH v1.3.2:
 ### Fuzz特殊HASH  
 使用该工具Fuzz出一些CTF常见特殊HASH，有备无患(￣▽￣)"  
 * 明文和md5都以0e开头   
-0e215962017  0eBkcqQpv  0eKfoob  0edpGW  0embO4G  0eqb  
+0eqb  
+0edpGW  
+0eKfoob  
+0embO4G  
+0eBkcqQpv  
+0e215962017  
 * 明文和md4都以0e开头  
-0e30  0e189  0e311  0e77961763272  0e001233333333333334557778889  
+0e30  
+0e189  
+0e311  
+0e77961763272  
+0e001233333333333334557778889  
 * 明文和sha1都以0e开头  
-0ecJFe  0e6NM  0eYAu0dPt  
+0ecJFe  
+0e6NM  
+0eYAu0dPt  
 * md5包含"276f7227"  
-ffifdyop  d0Fqvwtr2PitRUJyqT  hwqc5H27HdV6WhcBbKDVX  
+ffifdyop  
+d0Fqvwtr2PitRUJyqT  
+hwqc5H27HdV6WhcBbKDVX  
 > 用于web构造mysql注入md5($password,true)  
 
 ### 声明  
