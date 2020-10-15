@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/htruong/go-md2"
 	"golang.org/x/crypto/md4"
 )
 
@@ -134,6 +135,13 @@ func RandStringBytesMaskImpr(n int) string {
 	return string(b)
 }
 
+// 获取字符串的MD2值
+func GetMD2(data string) string {
+	h := md2.New()
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 // 获取字符串的MD4值
 func GetMD4(data string) string {
 	h := md4.New()
@@ -196,20 +204,22 @@ func routine(c <-chan string) {
 
 	dstTxt := <-c
 	if iCryptoMode == 0 {
-		szhash = GetMD4(dstTxt)
+		szhash = GetMD2(dstTxt)
 	} else if iCryptoMode == 1 {
+		szhash = GetMD4(dstTxt)
+	} else if iCryptoMode == 2 {
 		if iLenMd5 == 32 {
 			szhash = Get32MD5(dstTxt)
 		} else {
 			szhash = Get16MD5(dstTxt)
 		}
-	} else if iCryptoMode == 2 {
-		szhash = GetSha1(dstTxt)
 	} else if iCryptoMode == 3 {
-		szhash = GetSha224(dstTxt)
+		szhash = GetSha1(dstTxt)
 	} else if iCryptoMode == 4 {
-		szhash = GetSha256(dstTxt)
+		szhash = GetSha224(dstTxt)
 	} else if iCryptoMode == 5 {
+		szhash = GetSha256(dstTxt)
+	} else if iCryptoMode == 6 {
 		szhash = GetSha384(dstTxt)
 	} else {
 		szhash = GetSha512(dstTxt)
@@ -259,7 +269,7 @@ func main() {
 	flag.BoolVar(&bIsRandTxt, "aa", false, "不限制明文，随机穷举指定格式HASH")
 	flag.StringVar(&dic, "b", "", "按顺序组合穷举字符集(顺序会严重影响穷举速度，请尽量精确)\nd 数字 | l 小写字母 | u 大写字母 | h 十六进制字符集 | p 特殊字符 | r 可见字符\n例如：穷举字符集为数字、字母 -b=dlu")
 	flag.StringVar(&diyDic, "bb", "", "自定义穷举字符集")
-	flag.IntVar(&iCryptoMode, "m", 1, "设置HASH算法\n0 MD4 | 1 MD5 | 2 SHA1 | 3 SHA224 | 4 SHA256 | 5 SHA384 | 6 SHA512")
+	flag.IntVar(&iCryptoMode, "m", 2, "设置HASH算法\n0 MD2 | 1 MD4 | 2 MD5 | 3 SHA1 | 4 SHA224 | 5 SHA256 | 6 SHA384 | 7 SHA512")
 	flag.StringVar(&hashMask, "s", "", "设置HASH值字符串格式，支持3种模式\n? 占位符模式，如HASH第3位开始是6377，直接写'??6377'即可\n| 分隔符模式，如HASH第3位开始是6377第11位开始是66，直接写'3:6377|11:66'即可\n* 通配符模式，如fuzz包含7366的hash值，直接写'*7366*'即可")
 	flag.IntVar(&iLenMd5, "i", 32, "设置目标MD5位数16位或32位")
 	flag.IntVar(&iTotal, "t", 3, "使用-aa选项随机穷举HASH时，设置最少输出条数")
@@ -268,7 +278,7 @@ func main() {
 	flag.Parse()
 
 	if bShowVersion {
-		fmt.Println("Version : 1.3.2")
+		fmt.Println("Version : 1.3.3")
 		os.Exit(3)
 	}
 
@@ -298,6 +308,7 @@ func main() {
 	if i > 0 {
 		np = nextPassword(i, finalDic)
 	} else if len(txt) > 0 {
+		fmt.Printf("MD2     : %s\n", GetMD2(txt))
 		fmt.Printf("MD4     : %s\n", GetMD4(txt))
 		fmt.Printf("MD5(16) : %s\n", Get16MD5(txt))
 		fmt.Printf("MD5(32) : %s\n", Get32MD5(txt))
@@ -317,15 +328,15 @@ func main() {
     直接输出"HelloWorld"字符串的多种HASH值
       > bruteHASH -a=HelloWorld
     随机字符穷举，输出至少6条hash开头是"6377"的SHA1
-      > bruteHASH -aa -s=6377 -m=2 -t=6
+      > bruteHASH -aa -s=6377 -m=3 -t=6
     限制数字穷举，hash第7位是"6377"的SHA256
-      > bruteHASH -aa -b=d -s="??????6377" -m=4
-      > bruteHASH -aa -b=d -s="7:6377" -m=4
+      > bruteHASH -aa -b=d -s="??????6377" -m=5
+      > bruteHASH -aa -b=d -s="7:6377" -m=5
     随机字符穷举，hash第3位是"63"第11位是"77"的SHA224
-      > bruteHASH -aa -s="??63??????77" -m=3
-      > bruteHASH -aa -s="3:63|11:77" -m=3
+      > bruteHASH -aa -s="??63??????77" -m=4
+      > bruteHASH -aa -s="3:63|11:77" -m=4
     随机字符穷举，hash包含"6377"的md4
-      > bruteHASH -aa -s="*6377*" -m=0
+      > bruteHASH -aa -s="*6377*" -m=1
     自定义字符集穷举"c???new???"明文，以"95ce2a"结尾的16位MD5
       > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="??????????95ce2a" -i=16
       > bruteHASH -a="c???new???" -bb=abcdefnutvw_ -s="11:95ce2a" -i=16
