@@ -135,7 +135,7 @@ func RandStringBytesMaskImpr(n int) string {
 	return string(b)
 }
 
-// 获取字符串的MD2值
+// 获取字符串MD2值
 func GetMD2(data string) string {
 	h := md2.New()
 	h.Write([]byte(data))
