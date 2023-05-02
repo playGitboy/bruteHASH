@@ -1,6 +1,9 @@
 # bruteHASH  
+[![GitHub issues](https://img.shields.io/github/issues/playGitboy/bruteHASH)](https://github.com/playGitboy/bruteHASH/issues)
+[![GitHub stars](https://img.shields.io/github/stars/playGitboy/bruteHASH)](https://github.com/playGitboy/bruteHASH/stargazers)  
 
 ## 别问，问就是为了CTF  
+
 
 ### 功能  
 随机或穷举指定格式HASH值，输出符合条件的"明文 HASH"  组合
